@@ -1,1 +1,48 @@
+The phrase “Single-threaded nature of Node.js causing request queues” means:
+> Node.js handles all incoming requests using a single main thread, so when a request takes too long (e.g., due to a slow database query or heavy computation), other incoming requests get queued up, waiting for their turn to be processed.
+
+#### Node.js is single-threaded
+* It runs on one thread (the event loop) for handling JavaScript code.
+* It’s very fast at I/O operations (like reading files, database calls, API requests), because those are non-blocking and handled in the background by the OS or worker threads.
+
+#### But there's a catch❗:
+If you run a CPU-intensive or blocking operation (like a big loop, complex math, or waiting on a slow DB), the event loop gets blocked, and:
+* Other requests can't be processed.
+* They form a queue, leading to increased latency or even timeouts.
+
+🧠 Example
+Imagine this basic server:
+```javascript
+app.get('/slow', (req, res) => {
+  // Simulating a blocking operation
+  const start = Date.now();
+  while (Date.now() - start < 5000) {} // 5 seconds block
+  res.send("Done");
+});
+```
+If one user hits /slow, everyone else must wait 5 seconds before their request is handled — because the event loop is blocked.
+
+#### 🛠️ Solutions
+1. Offload heavy work
+> Move CPU-heavy tasks to worker threads or a separate service.
+> Example: worker_threads module in Node.js.
+
+2. Use asynchronous non-blocking code
+> Avoid while loops, blocking file reads, or synchronous DB queries.
+> Use async/await, Promises, or callbacks properly.
+
+3. Cluster mode
+> Run multiple Node.js processes across CPU cores using cluster or tools like PM2.
+> Each process gets its own event loop.
+
+4. Offload background tasks
+> Use message queues (e.g., Redis, RabbitMQ) to handle things like sending emails or image processing outside the request cycle.
+
+5. Use a load balancer
+> Distribute traffic between multiple instances of your Node.js app using something like NGINX, HAProxy, or AWS ELB.
+
+<br>
+
+🔚 In short:
+> Node.js is fast as long as you don’t block the event loop. If you do, other requests wait in line, creating a `request queue.`
 
