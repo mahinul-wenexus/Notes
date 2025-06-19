@@ -55,8 +55,9 @@ chmod +x my-script.js
 > This makes my-script.js executable, so you can run it like this:
 
 ```bash
-./my-script.js
+./my-script.js 
 ```
+> `./` this part is necessary.
 
 ##### Without chmod you have to do like this
 ```bash
@@ -81,4 +82,130 @@ Each can have three types of permissions:
 | Execute    | `x`    | Can run the file (if it's a script or binary) |
 
 
+
+<br>
+
+
+### Running My First CLI
+* Now if you run this command in terminal
+```bash
+./myscript.js 
+```
+> The file will run.
+> Now `myscript.js` can act as CLI
+
+
+
+### Arguments of cli `args`.
+* This cli can take arguments like `./myscript.js --version`.
+* How to catch this arguments: 
+```javascript
+#!/usr/bin/env node
+
+// myscript.js
+const args = process.argv; // `argv` simply outputs arguments
+console.log(args)
+
+
+
+``` 
+* Run command 
+```bash
+./myscript.js -hello
+```
+```text
+Output: 
+[
+  '/home/mahinul/.nvm/versions/node/v23.9.0/bin/node',
+  '/home/mahinul/Documents/RESEARCH/game-dev/cli-test.js',
+  '-hello'
+]
+```
+```text
+First two output doesn't matter.
+  '/home/mahinul/.nvm/versions/node/v23.9.0/bin/node',
+  '/home/mahinul/Documents/RESEARCH/game-dev/cli-test.js',
+
+Here, we got `-hello`.
+```
+
+### Executing terminal command in `js-cli`
+* We can execute terminal command in `./myscript.js`.
+* `spawn` is one of the `node` utilities.
+```javascript
+// commonjs
+const {spawn} = require('child_process');
+
+// es6
+import {spawn} from 'child_process'
+```
+```javascript
+const {spawn} = require('child_process');
+const args = process.argv.slice(2);
+
+const canBeAnyName = spawn("pnpm", ["run", "tsc", "--w"]);
+
+canBeAnyName.stdout.on("data", (data) => {
+  console.log(`stdout:\n${data}`);
+})
+
+canBeAnyName.stderr.on("data", (data) => {
+  console.log(`stdout: ${data}`);
+})
+
+canBeAnyName.on("exit", (code) => {
+  console.log(`Process ended with ${code}`);
+});
+```
+
+### Full example:
+```javascript
+#!/usr/bin/env node
+const {exec} = require("child_process");
+const {spawn} = require('child_process');
+
+const args = process.argv.slice(2);
+
+if (args.length === 0) {
+  console.log("No command provided. Try --help.");
+  process.exit(1);
+}
+
+if (args.includes("--help")) {
+  console.log(`
+tscli start-dev  = for starting a ts server
+  `);
+}
+
+if(args.includes("--dev")) {
+  const cmd = spawn("pnpm", ["run", "tsc", "--w"]);
+  cmd.stdout.on("data", (data) => {
+    console.log(`stdout:\n${data}`);
+  })
+
+  cmd.stderr.on("data", (data) => {
+    console.log(`stdout: ${data}`);
+  })
+
+  cmd.on("exit", (code) => {
+    console.log(`Process ended with ${code}`);
+  });
+}
+
+if(args.includes("--node")) {
+  const cmd = spawn("pnpm", ["run", "nodemon"]);
+
+  cmd.stdout.on("data", (data) => {
+    console.log(`${data}`);
+  })
+
+  cmd.stderr.on("data", (data) => {
+    console.log(`stdout: ${data}`);
+  })
+
+  cmd.on("exit", (code) => {
+    console.log(`Process ended with ${code}`);
+  });
+}
+```
 
